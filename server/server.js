@@ -47,6 +47,30 @@ app.post('/game', (req, res) => {
   })
 });
 
+let progress;
+
+app.get('/game/:id', (req, res) => {
+  fs.readFile('scenarios.json', 'utf8', (err, data) => {
+    if (err) {
+      res.status(500).send(err);
+    } else {
+      const id = req.params.id
+      const fileObj = JSON.parse(data);
+      const gameFile = fileObj.playerSelections;
+      let currentGame;
+      for (let i = 0; i < gameFile.length; i++) {
+        if (gameFile[i]['id'] === id) {
+          const current = gameFile[i]['currentStep']
+          gameFile[i]['choices'] = fileObj['BandersGuru']['nodes'][current]['choices'];
+          currentGame = i;
+        }
+      }
+      progress = gameFile[currentGame];
+      res.status(200).send(gameFile[currentGame]);
+    }
+  })
+});
+
 app.listen(port, () => {
   console.log(`listening on port ${port}`)
 });
