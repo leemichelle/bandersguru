@@ -38,9 +38,9 @@ app.post('/game', (req, res) => {
       }
       fs.writeFile('scenarios.json', jsonObj, 'utf8', (err, data) => {
         if (err) {
-          res.status(403).send(err);
+          res.status(500).send(err);
         } else {
-          res.status(200).send(req.body);
+          res.status(201).send(req.body);
         }
       })
     }
@@ -67,6 +67,36 @@ app.get('/game/:id', (req, res) => {
       }
       progress = gameFile[currentGame];
       res.status(200).send(gameFile[currentGame]);
+    }
+  })
+});
+
+app.post('/game/:id', (req, res) => {
+  fs.readFile('scenarios.json', (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      const id = req.params.id
+      const fileObj = JSON.parse(data);
+      const gameFile = fileObj.playerSelections;
+      let currentGame;
+      for (let i = 0; i < gameFile.length; i++) {
+        if (gameFile[i]['id'] === id) {
+          const current = gameFile[i]['currentStep'];
+          const currChoices = fileObj['BandersGuru']['nodes'][current]['choices'];
+          gameFile[i]['choices'] = currChoices[req.body.choices];
+          currentGame = i;
+        }
+      }
+      progress = gameFile[currentGame];
+      const jsonObj = JSON.stringify(fileObj);
+      fs.writeFile('scenarios.json', jsonObj, 'utf8', (err, data) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.status(201).send(progress);
+        }
+      })
     }
   })
 });
